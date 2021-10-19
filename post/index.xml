@@ -13,7 +13,9 @@
       <pubDate>Mon, 18 Oct 2021 00:00:00 +0000</pubDate>
       
       <guid>/2021/10/18/a-toy-project-of-single-cell-data-analysis/</guid>
-      <description>Load R package# way to install R packages# install.packages(file.choose(), repos=NULL)library(Seurat)## Warning: 程辑包&amp;#39;Seurat&amp;#39;是用R版本4.0.5 来建造的## Attaching SeuratObjectlibrary(cowplot)## Warning: 程辑包&amp;#39;cowplot&amp;#39;是用R版本4.0.5 来建造的library(Matrix)## Warning: 程辑包&amp;#39;Matrix&amp;#39;是用R版本4.0.5 来建造的library(dplyr)## Warning: 程辑包&amp;#39;dplyr&amp;#39;是用R版本4.0.5 来建造的## ## 载入程辑包：&amp;#39;dplyr&amp;#39;## The following objects are masked from &amp;#39;package:stats&amp;#39;:## ## filter, lag## The following objects are masked from &amp;#39;package:base&amp;#39;:## ## intersect, setdiff, setequal, unionlibrary(ggplot2)## Warning: 程辑包&amp;#39;ggplot2&amp;#39;是用R版本4.0.5 来建造的library(reshape2)library(hdf5r)## Warning: 程辑包&amp;#39;hdf5r&amp;#39;是用R版本4.</description>
+      <description>Load R package# way to install R packages# install.packages(file.choose(), repos=NULL)library(Seurat)library(cowplot)library(Matrix)library(dplyr)library(ggplot2)library(reshape2)library(hdf5r)library(MAST)library(umap)library(tidyr)library(tibble)# data &amp;lt;- readRDS(&amp;quot;group1.rds&amp;quot;)# &amp;quot;C:\\Users\\chen tianhao\\Downloads\\group2.rds&amp;quot;data &amp;lt;- readRDS(&amp;quot;group2.rds&amp;quot;)Violin plot of:Number of observed genes per cellNumber of reads per cell
+VlnPlot(data, features=c(&amp;quot;nFeature_RNA&amp;quot;,&amp;quot;nCount_RNA&amp;quot;))QC and cell filteringpercent.mt &amp;lt; 5Percent.Largest.Gene &amp;lt; 20nFeature_RNA &amp;gt; 750 and nFeature_RNA &amp;lt; 2000
+Calculate the proportion of transcripts mapping to mitochondrial genes</description>
     </item>
     
     <item>
