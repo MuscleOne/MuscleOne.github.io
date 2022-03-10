@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="generator" content="Hugo 0.88.1" />
+
+
+<title>A toy project of single cell data analysis - Chen&#39;s website</title>
+<meta property="og:title" content="A toy project of single cell data analysis - Chen&#39;s website">
+
+
+  <link href='/favicon.ico' rel='icon' type='image/x-icon'/>
+
+
+
+  
+
+
+
+
+
+
+
+
+<link href='//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css' rel='stylesheet' type='text/css' />
+
+
+
+<link rel="stylesheet" href="/css/fonts.css" media="all">
+<link rel="stylesheet" href="/css/main.css" media="all">
+
+
+
+  </head>
+  <body>
+    <div class="wrapper">
+      <header class="header">
+        <nav class="nav">
+  <a href="/" class="nav-logo">
+    <img src="/images/logo.png"
+         width="50"
+         height="50"
+         alt="Logo">
+  </a>
+
+  <ul class="nav-links">
+    
+    <li><a href="/about/">About</a></li>
+    
+    <li><a href="https://muscleone.github.io/Chen%20Tianhao_CV_en_2022-03-02.pdf">CV</a></li>
+    
+    <li><a href="https://github.com/MuscleOne">GitHub</a></li>
+    
+  </ul>
+</nav>
+
+      </header>
+
+
+<main class="content" role="main">
+
+  <article class="article">
+    
+    <span class="article-duration">6 min read</span>
+    
+
+    <h1 class="article-title">A toy project of single cell data analysis</h1>
+
+    
+    <span class="article-date">2021-10-18</span>
+    
+
+    <div class="article-content">
+      
+
+
+<div id="load-r-package" class="section level2">
+<h2>Load R package</h2>
+<pre class="r"><code># way to install R packages
+# install.packages(file.choose(), repos=NULL)
+library(Seurat)
+library(cowplot)
+library(Matrix)
+library(dplyr)
+library(ggplot2)
+library(reshape2)
+library(hdf5r)
+library(MAST)
+library(umap)
+library(tidyr)
+library(tibble)</code></pre>
+<pre class="r"><code># data &lt;- readRDS(&quot;group1.rds&quot;)
+# &quot;C:\\Users\\chen tianhao\\Downloads\\group2.rds&quot;
+data &lt;- readRDS(&quot;group2.rds&quot;)</code></pre>
+</div>
+<div id="violin-plot-of" class="section level2">
+<h2>Violin plot of:</h2>
+<p>Number of observed genes per cell
+Number of reads per cell</p>
+<pre class="r"><code>VlnPlot(data, features=c(&quot;nFeature_RNA&quot;,&quot;nCount_RNA&quot;))</code></pre>
+<p><img src="/post/a-toy-project-of-single-cell-data-analysis/index_files/figure-html/unnamed-chunk-3-1.png" width="672" /></p>
+</div>
+<div id="qc-and-cell-filtering" class="section level2">
+<h2>QC and cell filtering</h2>
+<p>percent.mt &lt; 5
+Percent.Largest.Gene &lt; 20
+nFeature_RNA &gt; 750 and nFeature_RNA &lt; 2000</p>
+<p>Calculate the proportion of transcripts mapping to mitochondrial genes</p>
+<pre class="r"><code>table(grepl(&quot;^MT-&quot;,rownames(data)))</code></pre>
+<pre><code>## 
+## FALSE 
+## 19469</code></pre>
+<pre class="r"><code>data[[&quot;percent.mt&quot;]] &lt;- PercentageFeatureSet(data, pattern = &quot;^MT-&quot;)
+# summary(scRNA@meta.data)</code></pre>
+<p>create <code>Percent.Largest.Gene</code></p>
+<pre class="r"><code>apply(
+  data@assays$RNA@counts,
+  2,
+  function(x)(100*max(x))/sum(x)
+) -&gt; data$Percent.Largest.Gene
+
+head(data$Percent.Largest.Gene)</code></pre>
+<pre><code>## HE6w_HE06W_1_LA.1 HE6w_HE06W_1_LA.2 HE6w_HE06W_1_LA.3 HE6w_HE06W_1_LA.4 
+##          5.175691          1.691861         19.118703         11.500755 
+## HE6w_HE06W_1_LA.5 HE6w_HE06W_1_LA.6 
+##          3.211554          4.894871</code></pre>
+<p>Create the subset we need and conduct filtering</p>
+<pre class="r"><code>subset(
+  data,
+  nFeature_RNA&gt;750 &amp; 
+    nFeature_RNA &lt; 2000 &amp; 
+    percent.mt &lt; 5 &amp; 
+    Percent.Largest.Gene &lt; 20
+) -&gt; data</code></pre>
+</div>
+<div id="normalize-the-data" class="section level2">
+<h2>Normalize the data</h2>
+<pre class="r"><code>NormalizeData(data, normalization.method = &quot;LogNormalize&quot;) -&gt; data
+apply(data@assays$RNA@data,1,mean) -&gt; gene.expression
+sort(gene.expression, decreasing = TRUE) -&gt; gene.expression</code></pre>
+</div>
+<div id="identification-of-highly-variable-features-feature-selection" class="section level2">
+<h2>Identification of highly variable features (feature selection)</h2>
+<pre class="r"><code>FindVariableFeatures(
+  data, 
+  selection.method = &quot;vst&quot;, 
+  nfeatures=500
+) -&gt; data</code></pre>
+<pre class="r"><code>as_tibble(HVFInfo(data),rownames = &quot;Gene&quot;) -&gt; variance.data
+
+variance.data %&gt;% 
+  mutate(hypervariable=Gene %in% VariableFeatures(data)
+  ) -&gt; variance.data
+
+head(variance.data, n=10)</code></pre>
+<pre><code>## Registered S3 method overwritten by &#39;cli&#39;:
+##   method     from         
+##   print.boxx spatstat.geom</code></pre>
+<pre><code>## # A tibble: 10 x 5
+##    Gene          mean variance variance.standardized hypervariable
+##    &lt;chr&gt;        &lt;dbl&gt;    &lt;dbl&gt;                 &lt;dbl&gt; &lt;lgl&gt;        
+##  1 A1BG        0        0                      0     FALSE        
+##  2 A1BG-AS1    0.136    1.12                   1.22  FALSE        
+##  3 A1CF        0.0971   0.971                  1.03  FALSE        
+##  4 A2M         0.223    2.35                   1.12  FALSE        
+##  5 A2M-AS1     0        0                      0     FALSE        
+##  6 A2ML1       0.155    2.19                   1.04  FALSE        
+##  7 A4GALT      0.0485   0.0466                 0.435 FALSE        
+##  8 AAAS        1.29    46.3                    1.34  FALSE        
+##  9 AACS        0.175    1.05                   0.844 FALSE        
+## 10 AADACL2-AS1 0        0                      0     FALSE</code></pre>
+<pre class="r"><code>variance.data %&gt;% 
+  ggplot(aes(log(mean),log(variance),color=hypervariable)) + 
+  geom_point() + 
+  scale_color_manual(values=c(&quot;black&quot;,&quot;red&quot;))</code></pre>
+<p><img src="/post/a-toy-project-of-single-cell-data-analysis/index_files/figure-html/unnamed-chunk-9-1.png" width="672" /></p>
+</div>
+<div id="scale-the-data" class="section level2">
+<h2>Scale the data</h2>
+<p>Before putting the data into PCA for dimensionality reduction we will scale the genes so that they have a mean of 0 and a variance of 1. This is claimed to make the analysis less biased by expression level in the PCA.</p>
+<pre class="r"><code>ScaleData(data,features=rownames(data)) -&gt; data</code></pre>
+<pre><code>## Centering and scaling data matrix</code></pre>
+</div>
+<div id="perform-linear-dimensional-reduction" class="section level2">
+<h2>Perform linear dimensional reduction</h2>
+<p>Implement PCA and plot the cells</p>
+<pre class="r"><code>RunPCA(data,features=VariableFeatures(data)) -&gt; data</code></pre>
+<pre><code>## PC_ 1 
+## Positive:  CSRP3, TMTC1, MYH6, NEXN, BTG1, TBX5, NLK, FOXO3, MPP2, MRPL40 
+##     MTHFD2L, ANKRD1, MB, SFRP1, SPEG, PRKACA, TTN, FARP1, NEBL, DNER 
+##     RRAD, HAND2-AS1, ACO1, LARP7, HIST1H1A, TBPL1, KIAA0895, FBXO32, GIPC1, MAPKAPK2 
+## Negative:  MT1G, ANK1, HBE1, HBZ, RHAG, HBQ1, CR1L, HBM, ALAS2, MT1H 
+##     GYPB, GYPC, LXN, AHSP, GYPA, FTL, BLVRB, GDF15, SELENBP1, BPGM 
+##     UCA1, HBG1, MALAT1, ELOVL1, CDKN3, MT2A, STRADB, S100A6, HBA1, CDC25C 
+## PC_ 2 
+## Positive:  MYL2, ENO3, TAGLN, MKKS, FOXK1, CHMP2B, EIF3L, NDUFS4, KRT8, CISD1 
+##     NARS, TP53I13, ACOT13, COMTD1, CCDC18, CEP83, DSG3, ZNF883, PNPLA4, CCDC91 
+##     NUP93, NDUFS7, GCK, PRPF31, HEIH, MPG, HNRNPDL, ZNF248, SV2B, SRPK1 
+## Negative:  HBG1, HBM, GYPA, GYPB, HBA1, ANK1, HBA2, RHAG, HBG2, PPP1R7 
+##     GLS, RNGTT, AHSP, HBQ1, CR1L, MT1G, TMTC1, MT1E, USP22, ALAS2 
+##     SFRP1, MPP2, FOXO3, TSPAN5, STK11, MTHFD2L, ELOVL1, NLK, PROX1, LXN 
+## PC_ 3 
+## Positive:  KIAA0895, GIPC1, SPEG, BCAT2, IQSEC2, MAPKAPK2, PRMT9, SHC2, PPP2R2B, NAA20 
+##     CCDC25, AP1M1, GAREM, TBX5, ACO1, RNGTT, ZFYVE21, TBPL1, PRKACA, CSNK1A1 
+##     DUSP3, TSPAN12, MRPL55, USE1, EIF2A, WDR45B, FDFT1, SMIM1, OCIAD2, PTPN14 
+## Negative:  DNER, SLC44A2, TTC37, RASD1, ACSF2, LARP7, SEC24C, VCL, SLC25A36, HBEGF 
+##     JMJD1C, TET1, KCNA5, SOX4, SLC8A1, DEF8, LRRC28, EGR1, C10orf10, TRDN 
+##     YIPF3, RIPK2, CARS2, SLC30A4, BUB3, MSH3, SEMA5A, GOLGA4, ADAMTS8, APP 
+## PC_ 4 
+## Positive:  CARS2, MTHFD2L, FOXO3, TMTC1, KCTD1, SNAPC2, DMD, RAD1, NLK, ATP2B1 
+##     FAM229B, PHAX, MPP2, DHTKD1, PCDH7, ADAMTS8, C1QTNF3, PAM, BOD1L1, EIF4G1 
+##     LINC01128, CAPN3, FBXL5, FADS1, PPP1R7, RYR2, PROX1, USP22, BVES, TXNIP 
+## Negative:  UNK, RASD1, HRAT17, PAAF1, VPS29, SEC24C, CLASP2, MT1E, RP9, C11orf1 
+##     HAND2-AS1, LRRC28, KCNA5, HBEGF, DANCR, NOL12, PRKAG1, SLC30A4, PLIN2, DEF8 
+##     AAMDC, RIPK2, SCAMP1, KAT6A, C19orf43, LINC01420, CHRNB1, CSTB, MSH3, LINC00116 
+## PC_ 5 
+## Positive:  CCDC25, NHP2L1, FLOT1, IQSEC2, CYSTM1, FDFT1, POPDC3, GIPC1, KIAA0895, ZFYVE21 
+##     SPEG, PRMT9, RNGTT, PPP2R2B, BBX, HAND2-AS1, MRPL55, BCAT2, TMEM42, MEF2C 
+##     ETFB, PSME1, NOL12, CSNK1A1, ABCE1, SHC2, EIF4EBP1, ZNF91, WIPI2, ACTR1A 
+## Negative:  IFT122, SETD7, CHRNB1, PLCB1, APOOL, FAM104A, NAA25, HDAC5, SESN3, ELK4 
+##     ULK2, MRPL24, PHYHD1, PDAP1, PCSK7, PHF20, STARD7, CCDC69, PPCS, FAM136A 
+##     CETN2, DUSP3, GLS, EFCAB14, WDR18, LOC101928304, CCSER2, EIF4EBP2, EFEMP2, PRKAB2</code></pre>
+<p>Visualization of the pac</p>
+<pre class="r"><code>DimPlot(data,reduction=&quot;pca&quot;, dims=c(1,2), group.by = &#39;orig.ident&#39;)</code></pre>
+<p><img src="/post/a-toy-project-of-single-cell-data-analysis/index_files/figure-html/unnamed-chunk-12-1.png" width="672" /></p>
+<p>Use DimHeatmap function to explore primary sources of heterogeneity</p>
+<pre class="r"><code>DimHeatmap(data,dims=1:15, cells=500)</code></pre>
+<p><img src="/post/a-toy-project-of-single-cell-data-analysis/index_files/figure-html/unnamed-chunk-13-1.png" width="672" />
+Use an Elbow plot to identify the true dimensionality</p>
+<pre class="r"><code>ElbowPlot(data)</code></pre>
+<p><img src="/post/a-toy-project-of-single-cell-data-analysis/index_files/figure-html/unnamed-chunk-14-1.png" width="672" /></p>
+</div>
+<div id="cluster-the-cells" class="section level2">
+<h2>Cluster the cells</h2>
+<pre class="r"><code>FindNeighbors(data,dims=1:15) -&gt; data</code></pre>
+<pre><code>## Computing nearest neighbor graph</code></pre>
+<pre><code>## Computing SNN</code></pre>
+<pre class="r"><code>data@graphs$RNA_snn[1:10,1:10]</code></pre>
+<pre><code>## 10 x 10 sparse Matrix of class &quot;dgCMatrix&quot;</code></pre>
+<pre><code>##    [[ suppressing 10 column names &#39;HE6w_HE06W_1_LA.6&#39;, &#39;HE6w_HE06W_1_LA.8&#39;, &#39;HE6w_HE06W_1_LA.9&#39; ... ]]</code></pre>
+<pre><code>##                                                                         
+## HE6w_HE06W_1_LA.6  1.00000000 0.17647059 0.08108108 0.08108108 0.3793103
+## HE6w_HE06W_1_LA.8  0.17647059 1.00000000 0.37931034 0.37931034 0.4285714
+## HE6w_HE06W_1_LA.9  0.08108108 0.37931034 1.00000000 0.17647059 0.1428571
+## HE6w_HE06W_1_LA.23 0.08108108 0.37931034 0.17647059 1.00000000 0.3333333
+## HE6w_HE06W_1_LA.35 0.37931034 0.42857143 0.14285714 0.33333333 1.0000000
+## HE6w_HE06W_1_LA.42 .          0.14285714 0.14285714 0.33333333 0.1111111
+## HE6w_HE06W_1_LV.8  0.37931034 .          .          .          0.1428571
+## HE6w_HE06W_1_LV.21 0.29032258 .          0.14285714 .          .        
+## HE6w_HE06W_1_LV.26 0.42857143 0.08108108 .          0.08108108 0.2903226
+## HE6w_HE06W_1_LV.28 0.48148148 0.08108108 .          .          0.2121212
+##                                                                       
+## HE6w_HE06W_1_LA.6  .         0.3793103 0.2903226 0.42857143 0.48148148
+## HE6w_HE06W_1_LA.8  0.1428571 .         .         0.08108108 0.08108108
+## HE6w_HE06W_1_LA.9  0.1428571 .         0.1428571 .          .         
+## HE6w_HE06W_1_LA.23 0.3333333 .         .         0.08108108 .         
+## HE6w_HE06W_1_LA.35 0.1111111 0.1428571 .         0.29032258 0.21212121
+## HE6w_HE06W_1_LA.42 1.0000000 .         .         .          .         
+## HE6w_HE06W_1_LV.8  .         1.0000000 0.4285714 0.53846154 0.53846154
+## HE6w_HE06W_1_LV.21 .         0.4285714 1.0000000 0.33333333 0.48148148
+## HE6w_HE06W_1_LV.26 .         0.5384615 0.3333333 1.00000000 0.66666667
+## HE6w_HE06W_1_LV.28 .         0.5384615 0.4814815 0.66666667 1.00000000</code></pre>
+<pre class="r"><code>FindClusters(data,resolution = 1.0) -&gt; data</code></pre>
+<pre><code>## Modularity Optimizer version 1.3.0 by Ludo Waltman and Nees Jan van Eck
+## 
+## Number of nodes: 103
+## Number of edges: 3868
+## 
+## Running Louvain algorithm...
+## Maximum modularity in 10 random starts: 0.2865
+## Number of communities: 3
+## Elapsed time: 0 seconds</code></pre>
+<pre class="r"><code>head(data$seurat_clusters, n=50)</code></pre>
+<pre><code>##  HE6w_HE06W_1_LA.6  HE6w_HE06W_1_LA.8  HE6w_HE06W_1_LA.9 HE6w_HE06W_1_LA.23 
+##                  0                  1                  1                  1 
+## HE6w_HE06W_1_LA.35 HE6w_HE06W_1_LA.42  HE6w_HE06W_1_LV.8 HE6w_HE06W_1_LV.21 
+##                  1                  1                  0                  0 
+## HE6w_HE06W_1_LV.26 HE6w_HE06W_1_LV.28 HE6w_HE06W_1_LV.45  HE6w_HE06W_1_RA.3 
+##                  0                  0                  0                  1 
+##  HE6w_HE06W_1_RA.5 HE6w_HE06W_1_RA.25 HE6w_HE06W_1_RA.27 HE6w_HE06W_1_RA.46 
+##                  1                  1                  1                  1 
+##  HE6w_HE06W_1_RV.6 HE6w_HE06W_1_RV.15 HE6w_HE06W_1_RV.23 HE6w_HE06W_1_RV.37 
+##                  1                  0                  1                  0 
+##  HE6w_HE06W_2_LA.7 HE6w_HE06W_2_LA.17 HE6w_HE06W_2_LA.23 HE6w_HE06W_2_LA.34 
+##                  1                  1                  1                  1 
+## HE6w_HE06W_2_LA.50 HE6w_HE06W_2_LA.70 HE6w_HE06W_2_LA.84  HE6w_HE06W_2_LV.5 
+##                  1                  1                  1                  0 
+##  HE6w_HE06W_2_LV.8 HE6w_HE06W_2_LV.13 HE6w_HE06W_2_LV.16 HE6w_HE06W_2_LV.18 
+##                  0                  1                  0                  0 
+## HE6w_HE06W_2_LV.19 HE6w_HE06W_2_LV.20 HE6w_HE06W_2_LV.21 HE6w_HE06W_2_LV.22 
+##                  0                  1                  0                  1 
+## HE6w_HE06W_2_LV.29 HE6w_HE06W_2_LV.34 HE6w_HE06W_2_LV.37 HE6w_HE06W_2_LV.42 
+##                  2                  1                  0                  1 
+## HE6w_HE06W_2_LV.53 HE6w_HE06W_2_LV.54 HE6w_HE06W_2_LV.55 HE6w_HE06W_2_LV.64 
+##                  0                  0                  0                  0 
+## HE6w_HE06W_2_LV.66 HE6w_HE06W_2_LV.73 HE6w_HE06W_2_LV.79 HE6w_HE06W_2_LV.87 
+##                  2                  0                  0                  0 
+##  HE6w_HE06W_2_RA.8 HE6w_HE06W_2_RA.34 
+##                  1                  1 
+## Levels: 0 1 2</code></pre>
+</div>
+<div id="implement-non-linear-dimensional-reduction---umap" class="section level2">
+<h2>Implement non-linear dimensional reduction - UMAP</h2>
+<pre class="r"><code># Run UMAP map on first 5 PCs
+RunUMAP(object = data, dims = 1:5) -&gt; data</code></pre>
+<pre><code>## 00:07:19 UMAP embedding parameters a = 0.9922 b = 1.112</code></pre>
+<pre><code>## 00:07:19 Read 103 rows and found 5 numeric columns</code></pre>
+<pre><code>## 00:07:19 Using Annoy for neighbor search, n_neighbors = 30</code></pre>
+<pre><code>## 00:07:19 Building Annoy index with metric = cosine, n_trees = 50</code></pre>
+<pre><code>## 0%   10   20   30   40   50   60   70   80   90   100%</code></pre>
+<pre><code>## [----|----|----|----|----|----|----|----|----|----|</code></pre>
+<pre><code>## **************************************************|
+## 00:07:19 Writing NN index file to temp file C:\Users\CHENTI~1\AppData\Local\Temp\RtmpsNc7GO\file6674567c283f
+## 00:07:19 Searching Annoy index using 1 thread, search_k = 3000
+## 00:07:19 Annoy recall = 100%
+## 00:07:20 Commencing smooth kNN distance calibration using 1 thread
+## 00:07:21 Initializing from normalized Laplacian + noise
+## 00:07:21 Commencing optimization for 500 epochs, with 3544 positive edges
+## 00:07:21 Optimization finished</code></pre>
+<pre class="r"><code>DimPlot(data,reduction = &quot;umap&quot;, pt.size = 1, label = TRUE)</code></pre>
+<p><img src="/post/a-toy-project-of-single-cell-data-analysis/index_files/figure-html/unnamed-chunk-17-1.png" width="672" /></p>
+</div>
+
+    </div>
+  </article>
+
+  
+
+
+</main>
+
+      <footer class="footer">
+        <ul class="footer-links">
+          <li>
+            <a href="/index.xml" type="application/rss+xml" target="_blank">RSS feed</a>
+          </li>
+          <li>
+            <a href="https://gohugo.io/" class="footer-links-kudos">Made with <img src="/images/hugo-logo.png" alt="Img link to Hugo website" width="22" height="22"></a>
+          </li>
+        </ul>
+      </footer>
+
+    </div>
+    
+
+
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+
+
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/r.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/yaml.min.js"></script>
+<script>hljs.configure({languages: []}); hljs.initHighlightingOnLoad();</script>
+
+
+
+    
+<script src="/js/math-code.js"></script>
+<script async src="//cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+
+
+    
+  </body>
+</html>
+
