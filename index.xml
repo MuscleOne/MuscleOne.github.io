@@ -63,7 +63,7 @@ summary(cars)## speed dist ## Min. : 4.0 Min. : 2.00 ## 1st Qu.:12.0 1st Qu.: 2
       <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
       
       <guid>/about/</guid>
-      <description>I am Chen Tianhao (陈天豪), a MSc student at University of Macau Department of Public Health. When I was an undergraduate student of materials science, I was deeply attracted by the beautiful framework of physical chemistry based on mathematical modeling, which could concisely describe the potential patterns of physical phenomena. Thus my academic path veered into materials processing modeling, i.e. analysis of continuous monitoring welding digital signal, and later to continuous monitoring physiological signal modeling: a sub-field of healthcare data science.</description>
+      <description>I am Chen Tianhao (陈天豪), a MSc student at University of Macau Department of Public Health. When I was an undergraduate student of materials science, I was deeply attracted by physical chemistry as it shows such a paradigm, a paradigm that applies mathematical modeling and data analysis to mine the latent patterns of observations. Thus my academic path veered into materials processing modeling, i.e. data modeling for welding digital signals, and later to studies in continuous monitoring of physiological signals: a sub-field of healthcare data science.</description>
     </item>
     
   </channel>
