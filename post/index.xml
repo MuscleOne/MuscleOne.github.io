@@ -6,7 +6,18 @@
     <description>Recent content in Posts on Chen&#39;s website</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Thu, 10 Mar 2022 00:00:00 +0000</lastBuildDate><atom:link href="/post/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Tue, 15 Mar 2022 00:00:00 +0000</lastBuildDate><atom:link href="/post/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>基于倾向性评分的逆概率加权——构造虚拟样本实现因果推断</title>
+      <link>/2022/03/15/%E5%9F%BA%E4%BA%8E%E5%80%BE%E5%90%91%E6%80%A7%E8%AF%84%E5%88%86%E7%9A%84%E9%80%86%E6%A6%82%E7%8E%87%E5%8A%A0%E6%9D%83%E6%9E%84%E9%80%A0%E8%99%9A%E6%8B%9F%E6%A0%B7%E6%9C%AC%E5%AE%9E%E7%8E%B0%E5%9B%A0%E6%9E%9C%E6%8E%A8%E6%96%AD/</link>
+      <pubDate>Tue, 15 Mar 2022 00:00:00 +0000</pubDate>
+      
+      <guid>/2022/03/15/%E5%9F%BA%E4%BA%8E%E5%80%BE%E5%90%91%E6%80%A7%E8%AF%84%E5%88%86%E7%9A%84%E9%80%86%E6%A6%82%E7%8E%87%E5%8A%A0%E6%9D%83%E6%9E%84%E9%80%A0%E8%99%9A%E6%8B%9F%E6%A0%B7%E6%9C%AC%E5%AE%9E%E7%8E%B0%E5%9B%A0%E6%9E%9C%E6%8E%A8%E6%96%AD/</guid>
+      <description>澳门新冠疫苗不良报告监测：是RNA疫苗的副作用大一点还是国药的大一点？假设我们需要监测澳门地区注射新冠疫苗后的不良事件报告和注射新冠疫苗种类的因果关系，我们可以作出以下因果图（图1），有三个变量\(T,Y,X\)。变量\(T\)描述注射疫苗的种类，变量\(Y\)描述不良事件报告与否。显然，一些混淆因素会影响不良事件报告与否，比如注射者再注射前的健康状况；同样，健康状况影响注射者对疫苗的选择，健康状况不佳的人士有可能倾向选择听闻副作用更小的国药疫苗。此时，健康状况称为“混淆变量”（confounding），记为\(X\), 类似的混淆变量还有年龄，性别，职业等等。
+图1 表示“疫苗种类-健康状况（等混淆变量）-不良事件”的因果图我们在此生成一个关于“疫苗种类-健康状况-不良事件”的联合概率分布\(Pr(T,Y,X)\)的模拟数据，如表1所示。
+表1 疫苗种类-健康状况-不良事件的联合概率分布\(Pr(T,Y,X)\)疫苗种类T不良事件Y健康状况X人群比例国药疫苗有不良事件健康状况良好0.0016国药疫苗有不良事件有基础疾病0.0018国药疫苗无不良事件健康状况良好0.3300国药疫苗无不良事件有基础疾病0.2400RNA疫苗有不良事件健康状况良好0.</description>
+    </item>
+    
     <item>
       <title>toy post 2022</title>
       <link>/2022/03/10/toy-post-2022/</link>
