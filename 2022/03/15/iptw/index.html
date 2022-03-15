@@ -80,7 +80,7 @@
 <p><img src="/2022/03/15/iptw/index_files/figure-html/causal dag-1.png" width="672" style="display: block; margin: auto;" /></p>
 <center><b>图1</b> 表示“疫苗种类-健康状况（等混淆变量）-不良事件”的因果图</center>
 <p>我们在此生成一个关于“疫苗种类-健康状况-不良事件”的联合概率分布<code>$Pr(T,Y,X)$</code>的模拟数据，如表1所示。</p>
- <center><b>表1</b> 疫苗种类-健康状况-不良事件的联合概率分布<code>$Pr(T,Y,X)$</cide></center>
+ <center><b>表1</b> 疫苗种类-健康状况-不良事件的联合概率分布<code>$Pr(T,Y,X)$</code></center>
 <table class="table table-bordered" style="margin-left: auto; margin-right: auto;">
  <thead>
   <tr>
@@ -190,7 +190,7 @@
 根据此问题的因果图，我们可以得到：
 <code>$$Pr(Y=y|do(T=t))=\sum_x Pr(Y=y|X=x,T=t)Pr(X=x)$$</code>
 将求和号内部的表达式乘以<code>$Pr(T=t|X=x)$</code>，即人们通过自己身体健康状况决定打哪种疫苗的倾向，称为<strong>倾向性评分</strong>，尔后又在分母除以它，得到
-<code>$$Pr(Y=y|do(T=t))=\sum_x \frac {Pr(Y=y|X=x,T=t)Pr(T=t|X=x)Pr(X=x)}{Pr(T=t|X=x)}$$</code>
+<bin>$$Pr(Y=y|do(T=t))=\sum_x \frac {Pr(Y=y|X=x,T=t)Pr(T=t|X=x)Pr(X=x)}{Pr(T=t|X=x)}$$</bin>
 此时，分子为<code>$(T,Y,X)$</code>在干预前的分布，因此上式可写为
 <code>$$Pr(Y=y|do(T=t))=\sum_x \frac {Pr(T=t,Y=y,X=x)}{Pr(T=t|X=x)}$$</code>
 总体中每个<code>$(T=t,Y=y,X=x)$</code>的概率都被因子<code>$1/Pr(T=t|X=x)$</code>放大了，因此被称为**“逆概率加权”**。它所“逆”的“概率”是指倾向性评分，倾向性评分刻画了混淆对干预选项的影响。</p>
