@@ -80,7 +80,7 @@
 <p><img src="/2022/03/15/iptw/index_files/figure-html/causal dag-1.png" width="672" style="display: block; margin: auto;" /></p>
 <center><b>图1</b> 表示“疫苗种类-健康状况（等混淆变量）-不良事件”的因果图</center>
 <p>我们在此生成一个关于“疫苗种类-健康状况-不良事件”的联合概率分布<code>$Pr(T,Y,X)$</code>的模拟数据，如表1所示。</p>
- <center><b>表1</b> 疫苗种类-健康状况-不良事件的联合概率分布`$Pr(T,Y,X)$`</center>
+ <center><b>表1</b> 疫苗种类-健康状况-不良事件的联合概率分布<code>$Pr(T,Y,X)$</cide></center>
 <table class="table table-bordered" style="margin-left: auto; margin-right: auto;">
  <thead>
   <tr>
@@ -146,8 +146,8 @@
 <code>$$Pr(Y=y, X=x|T=t)=\frac {Pr(T=t,Y=y,X=x)}{Pr(T=t)}$$</code></p>
 <p>在澳门新冠疫苗不良事件的监测任务中，我们以<code>$T=国药疫苗$</code>为条件，即只考察国药疫苗的不良事件报告情况，即可通过两个步骤获取如下表格的数据。第一步，删去所有<code>$T=RNA疫苗$</code>的行；第二部，赋予剩余行以权重，使其重新归一化，即乘以一个权数，使所有行加起来总和为1。根据贝叶斯法则，这个常数是<code>$1/Pr(T=国药疫苗)$</code>，即上表前四行的合并的权重，计算如下：
 <code>$$Pr(T=国药疫苗)=0.0016+0.0018+0.330+0.240=0.5734$$</code>
-重新归一化后的结果为表2的四行数据的加权分布，每行的权重已经被因子<code>$1/0.5734=1.743</code>$所提高了。</p>
-<center><b>表2</b> 表1群体里面以打国药疫苗为条件的概率分布`$Pr(Y,X|T="国药疫苗")$`</center>
+重新归一化后的结果为表2的四行数据的加权分布，每行的权重已经被因子<code>$1/0.5734=1.743$</code>所提高了。</p>
+<center><b>表2</b> 表1群体里面以打国药疫苗为条件的概率分布<code>$Pr(Y,X|T="国药疫苗")$</code></center>
 <table class="table table-bordered" style="margin-left: auto; margin-right: auto;">
  <thead>
   <tr>
@@ -199,7 +199,7 @@
 <code>$$Pr(T=国药疫苗|X=健康状况良好)=\frac {0.0016+0.3300}{0.0016+0.3300+0.0034+0.4000}=0.4512\\ Pr(T=国药疫苗|X=有基础疾病)=\frac {0.0018+0.2400}{0.0018+0.2400+0.0079+0.0153}=0.9124$$</code></p>
 <p>将表1数据按照对应健康状况分别乘以<code>$1/0.4512=2.217$</code>和<code>$1/0.9124=1.096$</code>，得到如表3的数据，表示对表1的群体进行干预后的分布，可以直接同通过前两行相加来计算出现不良事件的概率：
 <code>$$Pr(Y=有不良事件|do(T=国药疫苗))=0.003547+0.001972=0.005519$$</code></p>
-<center><b>表3</b> 通过逆概率加权确定的在`$do(T=国药疫苗)$`干预下的表1群体的概率分布</center>
+<center><b>表3</b> 通过逆概率加权确定的在<code>$do(T=国药疫苗)$</code>干预下的表1群体的概率分布</center>
 <table class="table table-bordered" style="margin-left: auto; margin-right: auto;">
  <thead>
   <tr>
